@@ -1,0 +1,30 @@
+sequenceDiagram
+actor User
+participant FE_ARC
+participant BE_ARC
+participant PULL PAYMENT SERVICE
+
+note right of User: User authenticated
+note over User, PULL PAYMENT SERVICE : Retrieve Payment Notices List
+    User ->> FE_ARC : Access to Payment Notices List
+    activate FE_ARC
+    alt User Accept opt-in
+        FE_ARC ->> FE_ARC : Save response opt-in in session storage
+        FE_ARC ->> BE_ARC : GET /payment-notices <br> Authentication: Bearer <Session Token>
+        activate BE_ARC
+            BE_ARC ->> BE_ARC : Validate session token
+            note right of BE_ARC : Retrieving CF from token
+            BE_ARC ->> PULL PAYMENT SERVICE : GET /pagopa-gpd-payments-pull/v1/payment-notices/v1
+            activate PULL PAYMENT SERVICE
+                PULL PAYMENT SERVICE -->> BE_ARC : Retrieve Payment Notices List
+            deactivate PULL PAYMENT SERVICE
+            note left of BE_ARC : [PHASE 1] The received list is filtered <br> by the ARC BE leaving only <br> the payment notices with <br> a payment option <br> and a single installment.
+            BE_ARC -->> FE_ARC : #
+        deactivate BE_ARC
+        FE_ARC  -->> User : #
+        deactivate FE_ARC
+    else User Reject opt-in
+       note right of FE_ARC : the user cannot access their payment notices list
+    end
+
+
