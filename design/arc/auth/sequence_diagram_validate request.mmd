@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant User-Agent
+    participant ARC-BE
+    participant ARC-AUTH
+
+    User-Agent->>ARC-BE: HTTP Request <br> Authentication: Bearer <Session Token>
+    activate ARC-BE
+        ARC-BE->>ARC-AUTH: GET /auth/userinfo with Authorization Header
+        activate ARC-AUTH
+            ARC-AUTH ->> ARC-AUTH : Validate session token
+            ARC-AUTH-->>ARC-BE: 200 OK with User Info
+        deactivate ARC-AUTH
+        alt Token Invalid or Expired
+            ARC-AUTH-->>ARC-BE: 401 Unauthorized
+            ARC-BE-->>User-Agent: 401 Unauthorized (Token Invalid or Expired)
+        else Token Valid
+            ARC-BE-->>User-Agent: 200 OK with Resource Data
+        end
+    deactivate ARC-BE
