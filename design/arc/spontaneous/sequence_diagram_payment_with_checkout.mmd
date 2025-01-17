@@ -1,0 +1,21 @@
+sequenceDiagram
+    actor User
+    participant FE_ARp
+    participant Checkout
+
+    note right of User: User is authenticated
+    note right of User: The payment notice has been generated
+
+    User ->> FE_ARp : Request spontaneous payment
+    FE_ARp ->> Checkout : POST /carts <br> {amount, payment notice data, redirectUrl}
+    activate FE_ARp
+    activate Checkout
+
+    Checkout ->> FE_ARp : 302 Found <br> Location: {payment URL}
+    deactivate Checkout
+
+    FE_ARp -->> User : Redirect to {payment URL}
+    deactivate FE_ARp
+
+    User ->> Checkout : Access payment portal and complete transaction
+    Checkout -->> User : Payment confirmation

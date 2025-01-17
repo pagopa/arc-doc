@@ -1,0 +1,21 @@
+sequenceDiagram
+actor User
+participant FE_ARp
+participant BE_ARp
+participant DB as DATABASE
+
+note right of User: User authenticated
+note over User, DB : Retrieve Organization List
+    User ->> FE_ARp : Access to Spontaneous Configuration
+    activate FE_ARp
+        FE_ARp ->> BE_ARp : GET /organizationList <br> Authentication: Bearer <Session Token>
+        activate BE_ARp
+            BE_ARp ->> BE_ARp : Validate session token
+            BE_ARp ->> DB : Query to retrieve organization list
+            activate DB
+                DB -->> BE_ARp : Organization List
+            deactivate DB
+            BE_ARp -->> FE_ARp : #
+        deactivate BE_ARp
+        FE_ARp -->> User: #
+    deactivate FE_ARp

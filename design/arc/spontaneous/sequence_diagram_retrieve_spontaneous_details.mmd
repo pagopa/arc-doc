@@ -1,0 +1,32 @@
+sequenceDiagram
+    actor User
+    participant FE_ARp
+    participant BE_ARp
+    participant MANAGER as DEBT-POSITION-MANAGER-FOR-THE-ORGANIZATION
+
+    note right of User: User authenticated
+    note over User, MANAGER : Retrieve Spontaneous Details
+    User ->> FE_ARp : Select the Spontaneous type
+    activate FE_ARp
+        FE_ARp ->> BE_ARp : GET /spontaneousDetails <br> Authentication: Bearer <Session Token>
+        activate BE_ARp
+            BE_ARp ->> BE_ARp : Validate session token
+            alt Token Invalid or Expired
+                BE_ARp ->> FE_ARp : 401 Unauthorized (Token Invalid or Expired)
+            else Token valid
+                BE_ARp ->> MANAGER : GET {baseURL}/spontaneousDetails <br> Authentication: Bearer <Session Token>
+                activate MANAGER
+                    MANAGER ->> BE_ARp : Return spontaneous details (with Token)
+                deactivate MANAGER
+
+                BE_ARp ->> BE_ARp : Validate token received from MANAGER
+                alt Token Invalid or Expired
+                    BE_ARp ->> FE_ARp : 401 Unauthorized (Token Invalid or Expired)
+                else Token valid
+                    BE_ARp -->> FE_ARp : 200 OK <br> Spontaneous details
+                end
+            end
+        deactivate BE_ARp
+        note over User,FE_ARp : [PHASE 1] FE_ARp retrieves the details <br> and shows the form <br> N.B. In this phase, only the following <br> will be shown to the user: <br> - default form, <br> - form with fixed amount, <br> - external URL
+        FE_ARp -->> User: Display Form
+    deactivate FE_ARp

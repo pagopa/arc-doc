@@ -1,0 +1,31 @@
+sequenceDiagram
+    actor User
+    participant FE_ARp
+    participant BE_ARp
+    participant MANAGER as DEBT-POSITION-MANAGER-FOR-THE-ORGANIZATION
+
+    note right of User: User authenticated
+    note over User, MANAGER : Generate Notice
+    User ->> FE_ARp : User filled the form
+    activate FE_ARp
+        FE_ARp ->> BE_ARp : POST /generateNotice <br> Authentication: Bearer <Session Token>
+        activate BE_ARp
+            BE_ARp ->> BE_ARp : Validate session token
+            alt Token Invalid or Expired
+                BE_ARp ->> FE_ARp : 401 Unauthorized (Token Invalid or Expired)
+            else Token valid
+                BE_ARp ->> MANAGER : POST {baseURL}/generateNotice <br> Authentication: Bearer <Session Token>
+                activate MANAGER
+                    MANAGER ->> BE_ARp : 201 Created <br> Return generated notice (with Token)
+                deactivate MANAGER
+
+                BE_ARp ->> BE_ARp : Validate token received from MANAGER
+                alt Token Invalid or Expired
+                    BE_ARp ->> FE_ARp : 401 Unauthorized (Token Invalid or Expired)
+                else Token valid
+                    BE_ARp -->> FE_ARp : 200 OK <br> generated notice
+                end
+            end
+        deactivate BE_ARp
+        FE_ARp -->> User: #
+    deactivate FE_ARp

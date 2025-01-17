@@ -1,0 +1,35 @@
+sequenceDiagram
+    participant ORGANIZATION
+    participant MANAGER as DEBT-POSITION-MANAGER-FOR-THE-ORGANIZATION
+    participant BE_ARp
+    participant DB as DATABASE
+
+    ORGANIZATION ->> ORGANIZATION : Organization has configured at least one Debt Position Type set as spontaneous
+    ORGANIZATION ->> MANAGER : Debt Position Type set as spontaneous
+    MANAGER ->> MANAGER : generateToken
+    MANAGER ->> BE_ARp : PUT /updateOrganizationList <br> Authentication: Token
+    activate MANAGER
+        activate BE_ARp
+            BE_ARp ->> DB : Get MANAGER baseURL for Organization
+            activate DB
+                DB ->> BE_ARp : Return baseURL
+            deactivate DB
+
+            BE_ARp ->> MANAGER : GET {baseURL}/getUserInfo <br> Authentication: Token
+            activate MANAGER
+        deactivate BE_ARp
+    deactivate MANAGER
+
+    MANAGER ->> MANAGER : ValidateToken
+    alt Token Invalid or Expired
+        MANAGER -->> BE_ARp : 401 Unauthorized (Token Invalid or Expired)
+        activate MANAGER
+        activate BE_ARp
+    else Token Valid
+        MANAGER -->> BE_ARp : 200 OK
+        deactivate MANAGER
+        BE_ARp ->> DB : updateList
+        activate DB
+        deactivate DB
+        deactivate BE_ARp
+    end
