@@ -1,32 +1,51 @@
 sequenceDiagram
-    actor User
-    participant FE_ARp
-    participant BE_ARp
-    participant MANAGER as DEBT-POSITION-MANAGER-FOR-THE-ORGANIZATION
 
-    note right of User: User authenticated
-    note over User, MANAGER : Retrieve Spontaneous Details
-    User ->> FE_ARp : Select the Spontaneous type
-    activate FE_ARp
-        FE_ARp ->> BE_ARp : GET /spontaneousDetails <br> Authentication: Bearer <Session Token>
-        activate BE_ARp
-            BE_ARp ->> BE_ARp : Validate session token
-            alt Token Invalid or Expired
-                BE_ARp ->> FE_ARp : 401 Unauthorized (Token Invalid or Expired)
-            else Token valid
-                BE_ARp ->> MANAGER : GET {baseURL}/spontaneousDetails <br> Authentication: Bearer <Session Token>
-                activate MANAGER
-                    MANAGER ->> BE_ARp : Return spontaneous details (with Token)
-                deactivate MANAGER
+actor User
+participant FE_ARp
+participant BE_ARp
+participant DB as DATABASE
+participant MANAGER as DEBT-POSITION-MANAGER-FOR-THE-ORGANIZATION
 
-                BE_ARp ->> BE_ARp : Validate token received from MANAGER
+note right of User: User authenticated
+note over User, MANAGER : Retrieve Spontaneous Details
+
+User ->> FE_ARp : Select the Spontaneous type
+activate FE_ARp
+    FE_ARp ->> BE_ARp : GET /spontaneousDetails <br> Authentication: Bearer <Session Token>
+    activate BE_ARp
+        BE_ARp ->> BE_ARp : Validate session token
+
+        alt Token Invalid or Expired
+            BE_ARp ->> FE_ARp : 401 Unauthorized (Token Invalid or Expired)
+        else Token valid
+            BE_ARp ->> DB : Get MANAGER baseURL, clientId and clientSecret for Organization
+
+            activate DB
+                DB ->> BE_ARp : Return baseURL, clientId and clientSecret
+            deactivate DB
+
+            BE_ARp ->> MANAGER : POST {baseURL}/postToken <br> clientId, clientSecret
+            activate MANAGER
+                MANAGER ->> BE_ARp : Return new token
+                note right of BE_ARp : Token cached for MANAGER
+            deactivate MANAGER
+
+            BE_ARp ->> MANAGER : GET {baseURL}/spontaneousDetails <br> Authentication: Token (cached or newly obtained)
+
+            activate MANAGER
+                MANAGER ->> MANAGER: Validate token
                 alt Token Invalid or Expired
-                    BE_ARp ->> FE_ARp : 401 Unauthorized (Token Invalid or Expired)
+                    MANAGER ->> BE_ARp : 401 Unauthorized (Token Invalid or Expired)
                 else Token valid
-                    BE_ARp -->> FE_ARp : 200 OK <br> Spontaneous details
+                    MANAGER ->> BE_ARp : Return spontaneous details
                 end
-            end
-        deactivate BE_ARp
-        note over User,FE_ARp : [PHASE 1] FE_ARp retrieves the details <br> and shows the form <br> N.B. In this phase, only the following <br> will be shown to the user: <br> - default form, <br> - form with fixed amount, <br> - external URL
-        FE_ARp -->> User: Display Form
-    deactivate FE_ARp
+            deactivate MANAGER
+
+            BE_ARp -->> FE_ARp : 200 OK <br> Spontaneous details
+        end
+    deactivate BE_ARp
+
+    note over User,FE_ARp : [PHASE 1] FE_ARp retrieves the details <br> and shows the form <br> N.B. In this phase, only the following <br> will be shown to the user: <br> - default form, <br> - form with fixed amount, <br> - external URL
+
+    FE_ARp -->> User: Display Form
+deactivate FE_ARp
