@@ -3,20 +3,17 @@ sequenceDiagram
     actor User
     participant FE_ARp
     participant Checkout
-    participant PSP as Payment Service Provider
 
     note right of User: User is authenticated
     note right of User: The payment notice has been generated
 
     User ->> FE_ARp : Request spontaneous payment
     FE_ARp ->> Checkout : POST /carts <br> {amount, payment notice data, redirectUrl}
+
     activate FE_ARp
         activate Checkout
-            Checkout ->> FE_ARp : 302 Found <br> Location: {payment URL}
+        note right of Checkout: Payment is finalized
+            Checkout -->> FE_ARp : Payment confirmation
         deactivate Checkout
-        FE_ARp -->> User : Redirect to {payment URL}
+        FE_ARp -->> User : #
     deactivate FE_ARp
-    User ->> PSP : Access payment portal and complete transaction
-    activate PSP
-        PSP -->> User : Payment confirmation
-    deactivate PSP
