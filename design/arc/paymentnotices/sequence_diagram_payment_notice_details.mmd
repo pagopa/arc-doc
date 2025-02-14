@@ -1,0 +1,26 @@
+sequenceDiagram
+actor User
+participant FE_ARC
+participant BE_ARC
+participant GPD as GPD SERVICE
+
+note right of User: User authenticated
+note over User, GPD : Retrieve Payment Notice Details
+    User ->> FE_ARC : User selected one Payment notice from Payment Notices List
+    activate FE_ARC
+
+    FE_ARC ->> BE_ARC : GET /payment-notices/{iupd} <br> Authentication: Bearer <Session Token>
+    activate BE_ARC
+        BE_ARC ->> BE_ARC : Validate session token
+        note right of BE_ARC : Retrieving CF from token
+        BE_ARC ->> GPD : GET /gpd/debt-positions-service/v1//organizations/{{organizationFiscalCode}}/debtpositions/{{iupd}}
+        activate GPD
+            GPD -->> BE_ARC : Retrieve Payment Notice Details
+        deactivate GPD
+        BE_ARC --> FE_ARC : Payment Notice Details
+    deactivate BE_ARC
+    FE_ARC  -->> User : #
+    deactivate FE_ARC
+
+
+
