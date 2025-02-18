@@ -12,7 +12,7 @@ note over User, MANAGER : Retrieve Spontaneous List
 
 User ->> FE_ARp : Access to Spontaneous List
 activate FE_ARp
-    FE_ARp ->> BE_ARp : GET /spontaneousList <br> Authentication: Bearer <Session Token>
+    FE_ARp ->> BE_ARp : GET /organizations/{paTaxCode}/spontaneous-types <br> Authentication: Bearer <Session Token>
     activate BE_ARp
         BE_ARp ->> BE_ARp : Validate session token
 
@@ -30,8 +30,8 @@ activate FE_ARp
             BE_ARp ->> MANAGER : POST {baseURL}/postToken <br> clientId, clientSecret
             activate MANAGER
                 MANAGER ->> BE_ARp : Return new token
-                note right of BE_ARp : Token cached for MANAGER
             deactivate MANAGER
+            note right of BE_ARp : Token cached for MANAGER
 
             BE_ARp ->> MANAGER : GET {baseURL}/spontaneousList <br> Authentication: Token (cached or newly obtained)
 

@@ -7,7 +7,7 @@ sequenceDiagram
     ORGANIZATION ->> ORGANIZATION : Organization has configured at least one Debt Position Type set as spontaneous
     ORGANIZATION ->> MANAGER : Debt Position Type set as spontaneous
     MANAGER ->> MANAGER : generateToken
-    MANAGER ->> BE_ARp : PUT /updateOrganizationList <br> Authentication: Token
+    MANAGER ->> BE_ARp : PUT /organizations <br> Authentication: Token
     activate MANAGER
         activate BE_ARp
             BE_ARp ->> DB : Get MANAGER baseURL for Organization
