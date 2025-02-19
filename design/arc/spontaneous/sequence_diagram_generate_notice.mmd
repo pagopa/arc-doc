@@ -10,7 +10,7 @@ note right of User: User authenticated
 note over User, MANAGER : Generate Notice
 User ->> FE_ARp : User filled the form
 activate FE_ARp
-    FE_ARp ->> BE_ARp : POST /generateNotice <br> Authentication: Bearer <Session Token>
+    FE_ARp ->> BE_ARp : POST /payment-notices <br> Authentication: Bearer <Session Token>
     activate BE_ARp
         BE_ARp ->> BE_ARp : Validate session token
         alt Token Invalid or Expired
@@ -25,8 +25,8 @@ activate FE_ARp
             BE_ARp ->> MANAGER : POST {baseURL}/postToken <br> clientId, clientSecret
             activate MANAGER
                 MANAGER ->> BE_ARp : Return new token
-                note right of BE_ARp : Token cached for MANAGER
             deactivate MANAGER
+            note right of BE_ARp : Token cached for MANAGER
 
             BE_ARp ->> MANAGER : POST {baseURL}/generateNotice <br> Authentication: Token (cached or newly obtained)
             activate MANAGER

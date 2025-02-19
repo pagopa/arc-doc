@@ -8,7 +8,7 @@ note right of User: User authenticated
 note over User, DB : Retrieve Organization List
     User ->> FE_ARp : Access to Spontaneous Configuration
     activate FE_ARp
-        FE_ARp ->> BE_ARp : GET /organizationList <br> Authentication: Bearer <Session Token>
+        FE_ARp ->> BE_ARp : GET /organizations <br> Authentication: Bearer <Session Token>
         activate BE_ARp
             BE_ARp ->> BE_ARp : Validate session token
             BE_ARp ->> DB : Query to retrieve organization list
